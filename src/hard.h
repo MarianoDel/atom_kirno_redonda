@@ -97,10 +97,6 @@
 #define SIZEOF_DATA		256
 #define SIZEOF_DATA512	SIZEOF_DATA1
 #define SIZEOF_DATA256	SIZEOF_DATA
-#define SIZEOF_BUFFTCP	SIZEOF_DATA
-
-
-
 
 
 // ------- de los switches -------

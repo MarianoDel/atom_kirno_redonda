@@ -38,12 +38,24 @@
 
 
 
-// ------- Externals del Puerto serie  -------
-volatile unsigned char tx2buff[SIZEOF_DATA];
-volatile unsigned char rx2buff[SIZEOF_DATA];
-
+// ------- Externals of USARTs  ----------
 volatile unsigned char tx1buff[SIZEOF_DATA];
 volatile unsigned char rx1buff[SIZEOF_DATA];
+volatile unsigned char usart1_pckt_ready;
+volatile unsigned char usart1_have_data;
+
+volatile unsigned char tx2buff[SIZEOF_DATA];
+volatile unsigned char rx2buff[SIZEOF_DATA];
+volatile unsigned char usart2_pckt_ready;
+volatile unsigned char usart2_have_data;
+
+// ------- Externals of Messages -------
+unsigned short mains_freq = 0;
+unsigned short mains_var = 0;
+unsigned char pwm = 0;
+unsigned char debug_secs = 0;
+
+
 
 //
 //volatile unsigned char data1[SIZEOF_DATA1];
@@ -179,6 +191,64 @@ int main(void)
 		}
 	}
 
+	//--- Prueba de LED ---//
+	while (1)
+	{
+		if (LED)
+			LED_OFF;
+		else
+			LED_ON;
+
+		Wait_ms(1000);
+	}
+	//--- Fin Prueba de LED ---//
+
+	//--- Prueba de LED con SYNC ---//
+	while (1)
+	{
+		if (SYNC)
+			LED_ON;
+		else
+			LED_OFF;
+
+	}
+	//--- Fin Prueba de LED con SYNC ---//
+
+	//--- Prueba de LED con RELAY ---//
+	while (1)
+	{
+		if (RELAY)
+		{
+			LED_OFF;
+			RELAY_OFF;
+		}
+		else
+		{
+			LED_ON;
+			RELAY_ON;
+		}
+		Wait_ms(5000);
+	}
+	//--- Fin Prueba de LED y RELAY ---//
+
+	//---------- Prueba USART1 Single Byte --------//
+	USART1Config();
+	while (1)
+	{
+		Usart1SendSingle('M');
+		Wait_ms(3000);
+	}
+	//---------- Fin Prueba USART1 Single Byte --------//
+
+	//---------- Prueba USART1 Multiple Bytes --------//
+	USART1Config();
+   while( 1 )
+   {
+		Usart1Send((char *) (const char *) "Kirno debug placa redonda\r\n");
+		Wait_ms(3000);
+   }
+   //---------- Fin Prueba USART1 Single Bytes --------//
+
 
 	//ADC Configuration
 //	AdcConfig();
@@ -191,55 +261,19 @@ int main(void)
 
 //	EXTIOff ();
 
-//	while (1)
-//	{
-//		if (RELAY)
-//		{
-//			RELAY_OFF;
-//			LED_OFF;
-//		}
-//		else
-//		{
-//			RELAY_ON;
-//			LED_ON;
-//		}
-//
-//		for (i = 0; i < 255; i++)
-//		{
-//			Update_TIM3_CH1 (i);
-//			Wait_ms (10);
-//		}
-//	}
-
-//		while (1)
-//		{
-//			PIN3_OFF;
-//			Wait_ms (10);
-//			PIN3_ON;
-//			Wait_ms (10);
-//		}
 
 	//--- Welcome code ---//
 	LED_OFF;
 	RELAY_ON;
 	//RELAY_OFF;
 
-//	USART1Config();
-	USART2Config();
+
+//	USART2Config();
 
 	EXTIOff();
 
 
 
-	//---------- Prueba USART2 --------//
-
-   while( 1 )
-   {
-   	Usart2Send((char *) (const char *) "Kirno debug placa redonda\r\n");
-       Wait_ms(3000);
-   }
-
-   //---------- Fin Prueba USART2 --------//
 
 
 
@@ -327,6 +361,8 @@ int main(void)
 		// UpdateSwitches();
 		// UpdateACSwitch();
 		// UpdatePackets();
+		ProcessMessages();
+		UpdateMessages();
 	}
 
 	//--- FIN PRUEBA FUNCION MAIN_MENU
@@ -339,96 +375,6 @@ int main(void)
 //--- End of Main ---//
 
 
-//void EXTI4_15_IRQHandler(void)
-//{
-//	unsigned short aux;
-//
-////--- SOLO PRUEBA DE INTERRUPCIONES ---//
-////	if (DMX_INPUT)
-////		LED_ON;
-////	else
-////		LED_OFF;
-////
-////	EXTI->PR |= 0x0100;
-//
-//	if(EXTI->PR & 0x0100)	//Line8
-//	{
-//
-//		//si no esta con el USART detecta el flanco	PONER TIMEOUT ACA?????
-//		if ((dmx_receive_flag == 0) || (dmx_timeout_timer == 0))
-//		//if (dmx_receive_flag == 0)
-//		{
-//			switch (signal_state)
-//			{
-//				case IDLE:
-//					if (!(DMX_INPUT))
-//					{
-//						//Activo timer en Falling.
-//						TIM14->CNT = 0;
-//						TIM14->CR1 |= 0x0001;
-//						signal_state++;
-//					}
-//					break;
-//
-//				case LOOK_FOR_BREAK:
-//					if (DMX_INPUT)
-//					{
-//						//Desactivo timer en Rising.
-//						aux = TIM14->CNT;
-//
-//						//reviso BREAK
-//						//if (((tim_counter_65ms) || (aux > 88)) && (tim_counter_65ms <= 20))
-//						if ((aux > 87) && (aux < 210))	//Consola STARLET 6
-//						//if ((aux > 87) && (aux < 2000))		//Consola marca CODE tiene break 1.88ms
-//						{
-//							LED_ON;
-//							//Activo timer para ver MARK.
-//							//TIM2->CNT = 0;
-//							//TIM2->CR1 |= 0x0001;
-//
-//							signal_state++;
-//							//tengo el break, activo el puerto serie
-//							DMX_channel_received = 0;
-//							//dmx_receive_flag = 1;
-//
-//							dmx_timeout_timer = DMX_TIMEOUT;		//activo el timer cuando prendo el puerto serie
-//							//USARTx_RX_ENA;
-//						}
-//						else	//falso disparo
-//							signal_state = IDLE;
-//					}
-//					else	//falso disparo
-//						signal_state = IDLE;
-//
-//					TIM14->CR1 &= 0xFFFE;
-//					break;
-//
-//				case LOOK_FOR_MARK:
-//					if ((!(DMX_INPUT)) && (dmx_timeout_timer))	//termino Mark after break
-//					{
-//						//ya tenia el serie habilitado
-//						//if ((aux > 7) && (aux < 12))
-//						dmx_receive_flag = 1;
-//					}
-//					else	//falso disparo
-//					{
-//						//termine por timeout
-//						dmx_receive_flag = 0;
-//						//USARTx_RX_DISA;
-//					}
-//					signal_state = IDLE;
-//					LED_OFF;
-//					break;
-//
-//				default:
-//					signal_state = IDLE;
-//					break;
-//			}
-//		}
-//
-//		EXTI->PR |= 0x0100;
-//	}
-//}
 
 void TimingDelay_Decrement(void)
 {

@@ -67,34 +67,30 @@ void GPIO_Config (void)
 		GPIOA_CLK_ON;
 
 	temp = GPIOA->MODER;	//2 bits por pin
-	temp &= 0x3C030000;		//PA0 - PA1 analog input; PA2 - PA3 alternate function; PA4 - PA5 input; PA6 alternate function; PA7 out open drain;
-//	temp |= 0x416860AF;		//PA9 PA10 alternative; PA11 PA12 PA15 out open drain
-//	temp |= 0x4168606F;		//pruebo pin3
-	temp |= 0x416860A3;		//PA1 input para pruebas
+	temp &= 0xFC3FCF00;		//PA0 input; PA1 analog input; PA2 - PA3 alternate function; PA6 alternate function;
+	temp |= 0x014020AC;		//PA11 - PA12 output;
 	GPIOA->MODER = temp;
 
 	temp = GPIOA->OTYPER;	//1 bit por pin
-	temp &= 0xFFFF7F7F;
-//	temp |= 0x00000080;		//PA7 open drain
-	temp |= 0x00008080;		//PA15 y PA7 open drain
+	temp &= 0xFFFFFFFF;
+	temp |= 0x00000000;
 	GPIOA->OTYPER = temp;
 
 	temp = GPIOA->OSPEEDR;	//2 bits por pin
-	temp &= 0x3C030F0F;
+	temp &= 0xFC3FFFFF;
 	temp |= 0x00000000;		//low speed
 	GPIOA->OSPEEDR = temp;
 
 	temp = GPIOA->PUPDR;	//2 bits por pin
-	temp &= 0xFFFFFFF3;
-	temp |= 0x00000008;		//pull down pin1 para pruebas
+	temp &= 0xFFFFFFFF;
+	temp |= 0x00000000;		//
 	GPIOA->PUPDR = temp;
 
-
-
-	//Alternate Fuction
-	//GPIOA->AFR[0] = 0x11000000;	//PA7 -> AF1; PA6 -> AF1
+	//Alternate Fuction for GPIOA
+	GPIOA->AFR[0] = 0x00001100;	//PA2 -> AF1; PA3 -> AF1
 
 	//--- GPIO B ---//
+#ifdef GPIOB_ENABLE
 	if (!GPIOB_CLK)
 		GPIOB_CLK_ON;
 
@@ -118,7 +114,7 @@ void GPIO_Config (void)
 	temp |= 0x00000000;
 	GPIOB->PUPDR = temp;
 
-	//Alternate Fuction
+	//Alternate Fuction for GPIOB
 	//GPIOB->AFR[0] = 0x11000000;	//PA7 -> AF1; PA6 -> AF1
 #endif
 
@@ -164,7 +160,7 @@ void GPIO_Config (void)
 //	NVIC_EnableIRQ(EXTI4_15_IRQn);
 //	NVIC_SetPriority(EXTI4_15_IRQn, 6);
 
-
+#endif
 }
 
 inline void EXTIOff (void)
