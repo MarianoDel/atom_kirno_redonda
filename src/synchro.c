@@ -8,10 +8,10 @@
 #include "synchro.h"
 #include "hard.h"
 //#include "dsp.h"
-#include "stm32f0xx_gpio.h"
+#include "gpio.h"
 #include "adc.h"
 #include "stm32f0xx.h"
-#include "stm32f0xx_adc.h"
+#include "adc.h"
 
 /*
 extern volatile unsigned short adc_ch [4];
@@ -292,3 +292,4 @@ unsigned short GetVGrid (void)
 	return max_vgrid_last;
 }
 
+//------ EOF -------//

@@ -103,11 +103,8 @@ SRC += $(DEVDIR)/syscalls/syscalls.c
 #SRC += $(STMSPSRCDDIR)/stm32f0xx_usart.c
 #SRC += $(STMSPSRCDDIR)/stm32f0xx_wwdg.c
 SRC += ./src/stm32f0xx_it.c
-#SRC += ./src/gpio.c
 SRC += ./src/gpio.c
-SRC += ./src/stm32f0x_tim.c
-
-#SRC += ./src/tim.c
+SRC += ./src/tim.c
 #SRC += ./src/hard.c
 SRC += ./src/adc.c
 SRC += ./src/uart.c

@@ -75,6 +75,30 @@
 
 
 //ESTADOS DEL PROGRAMA PRINCIPAL
+//ESTADOS DEL PROGRAMA PRINCIPAL EN MODO MQTT
+#ifdef WIFI_TO_MQTT_BROKER
+typedef enum {
+  wifi_state_reset = 0,
+  wifi_state_ready,
+  wifi_state_sending_conf,
+  wifi_state_wait_ip,
+  wifi_state_wait_ip1,
+  wifi_state_idle,
+  wifi_state_connecting,
+  wifi_state_connected,
+  wifi_state_disconnected,
+  wifi_state_error,
+  wifi_state_socket_close,
+  mqtt_socket_create,
+  client_conn,
+  mqtt_connect,
+  mqtt_sub,
+  mqtt_pub,
+  mqtt_device_control,
+  wifi_undefine_state       = 0xFF,
+} wifi_state_t;
+#endif
+
 #define MAIN_INIT				0
 #define MAIN_INIT_1				1
 #define MAIN_SENDING_CONF		2

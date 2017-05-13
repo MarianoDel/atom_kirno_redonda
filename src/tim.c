@@ -14,9 +14,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f0x_tim.h"
-#include "stm32f0xx_tim.h"
-#include "stm32f0xx_misc.h"
+#include "tim.h"
+#include "stm32f0xx.h"
 #include "uart.h"
 #include "hard.h"
 
@@ -254,6 +253,3 @@ void TIM_17_Init (void)
 }
 
 //--- end of file ---//
-
-
-

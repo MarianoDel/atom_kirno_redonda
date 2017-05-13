@@ -28,18 +28,22 @@
 //--- Private macro ---//
 
 //--- Externals variables ---//
+#ifdef USE_USART1
 extern volatile unsigned char usart1_pckt_ready;
 extern volatile unsigned char usart1_have_data;
 //extern volatile unsigned char usart1_mini_timeout;
 extern volatile unsigned char tx1buff[];
 extern volatile unsigned char rx1buff[];
+#endif
 
-
+#ifdef USE_USART2
 extern volatile unsigned char usart2_pckt_ready;
 extern volatile unsigned char usart2_have_data;
 //extern volatile unsigned char usart2_mini_timeout;
 extern volatile unsigned char tx2buff[];
 extern volatile unsigned char rx2buff[];
+#endif
+
 
 //--- Private variables ---//
 #ifdef USE_USART1

@@ -25,7 +25,7 @@
 
 //--- My includes ---//
 #include "gpio.h"
-#include "stm32f0x_tim.h"
+#include "tim.h"
 #include "uart.h"
 #include "hard.h"
 
@@ -33,34 +33,33 @@
 #include "adc.h"
 #include "flash_program.h"
 #include "synchro.h"
+#include "messages.h"
 
 //--- VARIABLES EXTERNAS ---//
 
 
 
 // ------- Externals of USARTs  ----------
+#ifdef USE_USART1
 volatile unsigned char tx1buff[SIZEOF_DATA];
 volatile unsigned char rx1buff[SIZEOF_DATA];
 volatile unsigned char usart1_pckt_ready;
 volatile unsigned char usart1_have_data;
+#endif
 
+#ifdef USE_USART2
 volatile unsigned char tx2buff[SIZEOF_DATA];
 volatile unsigned char rx2buff[SIZEOF_DATA];
 volatile unsigned char usart2_pckt_ready;
 volatile unsigned char usart2_have_data;
+#endif
 
 // ------- Externals of Messages -------
+//const char __attribute__ ((section (".nombreProg"))) nombrep [20] = {"Redonda Kirno v1.0  "};
 unsigned short mains_freq = 0;
 unsigned short mains_var = 0;
 unsigned char pwm = 0;
 unsigned char debug_secs = 0;
-
-
-
-//
-//volatile unsigned char data1[SIZEOF_DATA1];
-////static unsigned char data_back[10];
-//volatile unsigned char data[SIZEOF_DATA];
 
 // ------- Externals de los timers -------
 //volatile unsigned short prog_timer = 0;
@@ -265,10 +264,6 @@ int main(void)
 	//--- Welcome code ---//
 	LED_OFF;
 	RELAY_ON;
-	//RELAY_OFF;
-
-
-//	USART2Config();
 
 	EXTIOff();
 
@@ -376,7 +371,7 @@ int main(void)
 
 
 
-void TimingDelay_Decrement(void)
+void TimingDelay_Decrement(void)		//1ms tick
 {
 	if (wait_ms_var)
 		wait_ms_var--;
@@ -399,16 +394,23 @@ void TimingDelay_Decrement(void)
 	if (filter_timer)
 		filter_timer--;
 
-
-	//cuenta de a 1 minuto
-	if (secs > 59999)	//pasaron 1 min
-	{
-		minutes++;
-		secs = 0;
-	}
-	else
+	if (secs < 1000)
 		secs++;
-
+	else
+	{
+		secs = 0;
+		if (debug_secs)
+		debug_secs--;
+	}
+	// //cuenta de a 1 minuto
+	// if (secs > 59999)	//pasaron 1 min
+	// {
+	// 	minutes++;
+	// 	secs = 0;
+	// }
+	// else
+	// 	secs++;
+	//
 }
 
 //------ EOF -------//

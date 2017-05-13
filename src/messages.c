@@ -1,7 +1,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "messages.h"
 #include "uart.h"
-#include "stm32f0x_tim.h"
+#include "tim.h"
 #include "hard.h"
 #include "stm32f0xx.h"
 
@@ -49,6 +49,7 @@ void ProcessMessages (void)
 	if (!strncmp((const char *)msg, (const char *)"debug on", (sizeof("debug on") - 1)))
 	{
 		debug = 1;
+		Usart1Send("done\r\n");
 		return;
 	}
 
@@ -56,6 +57,7 @@ void ProcessMessages (void)
 	if (!strncmp((const char *)msg, (const char *)"debug off", (sizeof("debug off") - 1)))
 	{
 		debug = 0;
+		Usart1Send("done\r\n");
 		return;
 	}
 
@@ -63,12 +65,14 @@ void ProcessMessages (void)
 	if (!strncmp((const char *)msg, (const char *)"relay on", (sizeof("relay on") - 1)))
 	{
 		RELAY_ON;
+		Usart1Send("done\r\n");
 		return;
 	}
 
 	if (!strncmp((const char *)msg, (const char *)"relay off", (sizeof("relay off") - 1)))
 	{
 		RELAY_OFF;
+		Usart1Send("done\r\n");
 		return;
 	}
 
@@ -84,7 +88,10 @@ void ProcessMessages (void)
 				Update_TIM3_CH1 (255);
 			else
 				Update_TIM3_CH1 (local_pwm);
+
+			Usart1Send("done\r\n");
 		}
+		return;
 	}
 }
 

@@ -87,7 +87,7 @@ void GPIO_Config (void)
 	GPIOA->PUPDR = temp;
 
 	//Alternate Fuction for GPIOA
-	GPIOA->AFR[0] = 0x00001100;	//PA2 -> AF1; PA3 -> AF1
+	GPIOA->AFR[0] = 0x00001100;	//PA2 -> AF1; PA3 -> AF1; PA6 -> AF1 en enable pin tim.c
 
 	//--- GPIO B ---//
 #ifdef GPIOB_ENABLE
