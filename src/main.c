@@ -231,15 +231,15 @@ int main(void)
 
 
 
-//	//---------- Prueba USART2 --------//
-//
-//    while( 1 )
-//    {
-//    	Usart2Send((char *) (const char *) "Kirno debug placa redonda\r\n");
-//        Wait_ms(3000);
-//    }
-//
-//    //---------- Fin Prueba USART2 --------//
+	//---------- Prueba USART2 --------//
+
+   while( 1 )
+   {
+   	Usart2Send((char *) (const char *) "Kirno debug placa redonda\r\n");
+       Wait_ms(3000);
+   }
+
+   //---------- Fin Prueba USART2 --------//
 
 
 
