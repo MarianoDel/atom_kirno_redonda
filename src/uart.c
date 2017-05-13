@@ -18,8 +18,6 @@
 #include "stm32f0xx.h"
 #include "uart.h"
 
-#include "gps_vktel.h"
-
 #include <string.h>
 
 
@@ -40,11 +38,11 @@ extern volatile unsigned char usart1_mini_timeout;
 extern volatile unsigned char usart1_pckt_ready;
 extern volatile unsigned char usart1_have_data;
 
-#ifdef USE_GSM_GATEWAY
+
 extern volatile unsigned char usart2_mini_timeout;
 extern volatile unsigned char usart2_pckt_ready;
 extern volatile unsigned char usart2_have_data;
-#endif
+
 
 //#define data512		data1		//en rx es la trama recibida; en tx es la trama a enviar
 //#define data256		data		//en rx son los valores del channel elegido
@@ -75,143 +73,143 @@ volatile unsigned char usart_mode = USART_GPS_MODE;
 //--- Private function prototypes ---//
 //--- Private functions ---//
 
-//cambio de modo al USART del GPS al GSM
-//le paso el modo o le pregunto
-//responde modo
-unsigned char Usart1Mode (unsigned char new_mode)
-{
-	unsigned int temp_int;
-	unsigned int temp_gpio;
-
-	temp_int = USART1->CR1;
-	USART1->CR1 &= 0xFFFFFF6F;		//limpio flags IE
-
-	if (new_mode == USART_GPS_MODE)
-	{
-		//config gpio A to Input
-		temp_gpio = GPIOA->MODER;		//2 bits por pin
-		temp_gpio &= 0xFFC3FFFF;		//PA9 PA10 input
-		temp_gpio |= 0x00000000;		//
-		GPIOA->MODER = temp_gpio;
-
-		GPIOA->AFR[1] &= 0xFFFFF00F;	//PA9 -> AF0 A10 -> AF0
-
-		//config gpio B to Alternative
-		temp_gpio = GPIOB->MODER;		//2 bits por pin
-		temp_gpio &= 0xFFFF0FFF;		//PB6 PB7 alternative
-		temp_gpio |= 0x0000A000;		//
-		GPIOB->MODER = temp_gpio;
-
-		GPIOB->AFR[0] &= 0x00FFFFFF;	//PB7 -> AF0 PB6 -> AF0
-
-		usart_mode = USART_GPS_MODE;
-	}
-
-	if (new_mode == USART_GSM_MODE)
-	{
-		//config gpio B to Input
-		temp_gpio = GPIOB->MODER;		//2 bits por pin
-		temp_gpio &= 0xFFFF0FFF;		//PB6 PB7 input
-		temp_gpio |= 0x00000000;		//
-		GPIOB->MODER = temp_gpio;
-
-		GPIOB->AFR[0] &= 0x00FFFFFF;	//PB7 -> AF0 PB6 -> AF0
-
-		//config gpio A to Alternative
-		temp_gpio = GPIOA->MODER;		//2 bits por pin
-		temp_gpio &= 0xFFC3FFFF;		//PA9 PA10 alternative
-		temp_gpio |= 0x00280000;		//
-		GPIOA->MODER = temp_gpio;
-
-		GPIOA->AFR[1] |= 0x00000110;	//PA10 -> AF1 PA9 -> AF1
-
-		usart_mode = USART_GSM_MODE;
-	}
-
-	USART1->CR1 = temp_int;
-	return usart_mode;
-}
-
-unsigned char ReadUsart1Buffer (unsigned char * bout, unsigned short max_len)
-{
-	unsigned int len;
-
-	len = prx1 - rx1buff;
-
-	if (len < max_len)
-		memcpy(bout, (unsigned char *) rx1buff, len);
-	else
-	{
-		memcpy(bout, (unsigned char *) rx1buff, len);
-		len = max_len;
-	}
-
-	//ajusto punteros de rx luego de la copia
-	prx1 = rx1buff;
-
-	return (unsigned char) len;
-}
-
-void USART1_IRQHandler(void)
-{
-	unsigned char dummy;
-
-	/* USART in mode Receiver --------------------------------------------------*/
-	if (USART1->ISR & USART_ISR_RXNE)
-	{
-		dummy = USART1->RDR & 0x0FF;
-
-		//RX GPS & GSM
-		if ((usart_mode == USART_GPS_MODE) || (usart_mode == USART_GSM_MODE))
-		{
-			if (prx1 < &rx1buff[SIZEOF_DATA])
-			{
-				*prx1 = dummy;
-				prx1++;
-				usart1_have_data = 1;
-			}
-			usart1_mini_timeout = TT_GPS_MINI;
-		}
-
-//		//RX GSM
-//		if (usart_mode == USART_GSM_MODE)
-//		{
-//			if (prx1 < &rx1buff[SIZEOF_DATA])
-//			{
-//				*prx1 = dummy;
-//				prx1++;
-//				gsm_have_data = 1;
-//			}
-//			gsm_mini_timeout = TT_GSM_MINI;
-//		}
-	}
-
-	/* USART in mode Transmitter -------------------------------------------------*/
-
-	if (USART1->CR1 & USART_CR1_TXEIE)
-	{
-		if (USART1->ISR & USART_ISR_TXE)
-		{
-			if ((ptx1 < &tx1buff[SIZEOF_DATA]) && (ptx1 < ptx1_pckt_index))
-			{
-				USART1->TDR = *ptx1;
-				ptx1++;
-			}
-			else
-			{
-				ptx1 = tx1buff;
-				ptx1_pckt_index = tx1buff;
-				USART1->CR1 &= ~USART_CR1_TXEIE;
-			}
-		}
-	}
-
-	if ((USART1->ISR & USART_ISR_ORE) || (USART1->ISR & USART_ISR_NE) || (USART1->ISR & USART_ISR_FE))
-	{
-		USART1->ICR |= 0x0e;
-		dummy = USART1->RDR;
-	}
-}
+// //cambio de modo al USART del GPS al GSM
+// //le paso el modo o le pregunto
+// //responde modo
+// unsigned char Usart1Mode (unsigned char new_mode)
+// {
+// 	unsigned int temp_int;
+// 	unsigned int temp_gpio;
+//
+// 	temp_int = USART1->CR1;
+// 	USART1->CR1 &= 0xFFFFFF6F;		//limpio flags IE
+//
+// 	if (new_mode == USART_GPS_MODE)
+// 	{
+// 		//config gpio A to Input
+// 		temp_gpio = GPIOA->MODER;		//2 bits por pin
+// 		temp_gpio &= 0xFFC3FFFF;		//PA9 PA10 input
+// 		temp_gpio |= 0x00000000;		//
+// 		GPIOA->MODER = temp_gpio;
+//
+// 		GPIOA->AFR[1] &= 0xFFFFF00F;	//PA9 -> AF0 A10 -> AF0
+//
+// 		//config gpio B to Alternative
+// 		temp_gpio = GPIOB->MODER;		//2 bits por pin
+// 		temp_gpio &= 0xFFFF0FFF;		//PB6 PB7 alternative
+// 		temp_gpio |= 0x0000A000;		//
+// 		GPIOB->MODER = temp_gpio;
+//
+// 		GPIOB->AFR[0] &= 0x00FFFFFF;	//PB7 -> AF0 PB6 -> AF0
+//
+// 		usart_mode = USART_GPS_MODE;
+// 	}
+//
+// 	if (new_mode == USART_GSM_MODE)
+// 	{
+// 		//config gpio B to Input
+// 		temp_gpio = GPIOB->MODER;		//2 bits por pin
+// 		temp_gpio &= 0xFFFF0FFF;		//PB6 PB7 input
+// 		temp_gpio |= 0x00000000;		//
+// 		GPIOB->MODER = temp_gpio;
+//
+// 		GPIOB->AFR[0] &= 0x00FFFFFF;	//PB7 -> AF0 PB6 -> AF0
+//
+// 		//config gpio A to Alternative
+// 		temp_gpio = GPIOA->MODER;		//2 bits por pin
+// 		temp_gpio &= 0xFFC3FFFF;		//PA9 PA10 alternative
+// 		temp_gpio |= 0x00280000;		//
+// 		GPIOA->MODER = temp_gpio;
+//
+// 		GPIOA->AFR[1] |= 0x00000110;	//PA10 -> AF1 PA9 -> AF1
+//
+// 		usart_mode = USART_GSM_MODE;
+// 	}
+//
+// 	USART1->CR1 = temp_int;
+// 	return usart_mode;
+// }
+//
+// unsigned char ReadUsart1Buffer (unsigned char * bout, unsigned short max_len)
+// {
+// 	unsigned int len;
+//
+// 	len = prx1 - rx1buff;
+//
+// 	if (len < max_len)
+// 		memcpy(bout, (unsigned char *) rx1buff, len);
+// 	else
+// 	{
+// 		memcpy(bout, (unsigned char *) rx1buff, len);
+// 		len = max_len;
+// 	}
+//
+// 	//ajusto punteros de rx luego de la copia
+// 	prx1 = rx1buff;
+//
+// 	return (unsigned char) len;
+// }
+//
+// void USART1_IRQHandler(void)
+// {
+// 	unsigned char dummy;
+//
+// 	/* USART in mode Receiver --------------------------------------------------*/
+// 	if (USART1->ISR & USART_ISR_RXNE)
+// 	{
+// 		dummy = USART1->RDR & 0x0FF;
+//
+// 		//RX GPS & GSM
+// 		if ((usart_mode == USART_GPS_MODE) || (usart_mode == USART_GSM_MODE))
+// 		{
+// 			if (prx1 < &rx1buff[SIZEOF_DATA])
+// 			{
+// 				*prx1 = dummy;
+// 				prx1++;
+// 				usart1_have_data = 1;
+// 			}
+// 			usart1_mini_timeout = TT_GPS_MINI;
+// 		}
+//
+// //		//RX GSM
+// //		if (usart_mode == USART_GSM_MODE)
+// //		{
+// //			if (prx1 < &rx1buff[SIZEOF_DATA])
+// //			{
+// //				*prx1 = dummy;
+// //				prx1++;
+// //				gsm_have_data = 1;
+// //			}
+// //			gsm_mini_timeout = TT_GSM_MINI;
+// //		}
+// 	}
+//
+// 	/* USART in mode Transmitter -------------------------------------------------*/
+//
+// 	if (USART1->CR1 & USART_CR1_TXEIE)
+// 	{
+// 		if (USART1->ISR & USART_ISR_TXE)
+// 		{
+// 			if ((ptx1 < &tx1buff[SIZEOF_DATA]) && (ptx1 < ptx1_pckt_index))
+// 			{
+// 				USART1->TDR = *ptx1;
+// 				ptx1++;
+// 			}
+// 			else
+// 			{
+// 				ptx1 = tx1buff;
+// 				ptx1_pckt_index = tx1buff;
+// 				USART1->CR1 &= ~USART_CR1_TXEIE;
+// 			}
+// 		}
+// 	}
+//
+// 	if ((USART1->ISR & USART_ISR_ORE) || (USART1->ISR & USART_ISR_NE) || (USART1->ISR & USART_ISR_FE))
+// 	{
+// 		USART1->ICR |= 0x0e;
+// 		dummy = USART1->RDR;
+// 	}
+// }
 
 void USART2_IRQHandler(void)
 {

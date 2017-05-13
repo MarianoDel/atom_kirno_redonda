@@ -15,7 +15,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx.h"
-#include "stm32f0x_gpio.h"
+#include "gpio.h"
 #include "hard.h"
 
 
