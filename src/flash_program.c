@@ -22,22 +22,7 @@
 
 
 /* Externals variables ---------------------------------------------------------*/
-#ifdef CONFIGURATION_IN_FLASH
-extern unsigned char b1t;
-extern unsigned char b1r;
-extern unsigned char b2t;
-extern unsigned char b2r;
-extern unsigned char b3t;
-extern unsigned char b3r;
-extern unsigned char b4t;
-extern unsigned char b4r;
-
 extern parameters_typedef param_struct;
-#endif
-
-#ifdef CONFIGURATION_IN_SST
-extern parameters_typedef param_struct;
-#endif
 
 /* Private typedef -----------------------------------------------------------*/
 

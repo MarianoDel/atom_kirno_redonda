@@ -5,24 +5,6 @@
 //typedef unsigned int uint32_t;
 #include <stdint.h>
 
-#define INFO_IN_SST
-//#define INFO_IN_FLASH
-
-#ifdef INFO_IN_SST
-#define CONFIGURATION_IN_SST
-#define CODES_IN_SST
-#define OFFSET_FILESYSTEM	0x0000
-#define OFFSET_CONFIGURATION	0x1000
-#define OFFSET_FIRST_FILE	0x6000
-#endif
-
-#ifdef INFO_IN_FLASH
-#define CONFIGURATION_IN_FLASH
-#define CODES_IN_FLASH
-#define OFFSET_FILESYSTEM	0x0000
-#define FUNC_MEM
-#endif
-
 // Define the STM32F10x FLASH Page Size depending on the used STM32 device
 // si es mayor a 128K la pagina es de 2KB, sino 1KB
 

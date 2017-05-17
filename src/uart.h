@@ -37,8 +37,8 @@
 #define USART_115200		416
 #define USART_250000		192
 
-#define USARTx_RX_ENA	USARTx->CR1 &= 0xfffffffb
-#define USARTx_RX_DISA	USARTx->CR1 |= 0x04
+#define USARTx_RX_DISA	USARTx->CR1 &= 0xfffffffb
+#define USARTx_RX_ENA	USARTx->CR1 |= 0x04
 
 //--- Exported functions ---//
 unsigned char ReadUsart1Buffer (unsigned char *, unsigned short);
