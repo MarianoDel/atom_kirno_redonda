@@ -131,8 +131,8 @@ void TIM_3_Init (void)
 
 	//Configuracion Pines
 	//Alternate Fuction
-	GPIOA->AFR[0] = 0x01000000;	//PA6 -> AF1
-	//GPIOB->AFR[0] = 0x00000011;	//PB1 -> AF1; PB0 -> AF1
+	//GPIOA->AFR[0] = 0x01000000;	//PA6 -> AF1
+	GPIOB->AFR[0] = 0x00010000;	//PB4 -> AF1
 #endif
 
 }
@@ -206,16 +206,17 @@ void TIM_16_Init (void)
 		RCC_TIM16_CLK_ON;
 
 	//Configuracion del timer.
-	TIM16->ARR = 0;
+	TIM16->CR1 = 0x00;		//clk int / 1; upcounting; uev
+	TIM16->ARR = 0xFFFF;
 	TIM16->CNT = 0;
-	TIM16->PSC = 47;
+	//TIM16->PSC = 7999;	//tick 1ms
+	//TIM16->PSC = 799;	//tick 100us
+	TIM16->PSC = 47;			//tick 1us
+	TIM16->EGR = TIM_EGR_UG;
 
-	// Enable timer interrupt ver UDIS
-	TIM16->DIER |= TIM_DIER_UIE;
-	TIM16->CR1 |= TIM_CR1_URS | TIM_CR1_OPM;	//solo int cuando hay overflow y one shot
-
-	NVIC_EnableIRQ(TIM16_IRQn);
-	NVIC_SetPriority(TIM16_IRQn, 7);
+	// Enable timer ver UDIS
+	//	TIM16->DIER |= TIM_DIER_UIE;
+	//	TIM16->CR1 |= TIM_CR1_CEN;
 }
 
 void OneShootTIM16 (unsigned short a)
@@ -223,6 +224,17 @@ void OneShootTIM16 (unsigned short a)
 	TIM16->ARR = a;
 	TIM16->CR1 |= TIM_CR1_CEN;
 }
+
+void TIM16Enable (void)
+{
+	TIM16->CR1 |= TIM_CR1_CEN;
+}
+
+void TIM16Disable (void)
+{
+	TIM16->CR1 &= ~TIM_CR1_CEN;
+}
+
 
 void TIM17_IRQHandler (void)	//200uS
 {

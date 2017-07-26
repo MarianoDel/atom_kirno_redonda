@@ -16,7 +16,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx.h"
-#include "stm32f0xx_adc.h"
+//#include "stm32f0xx_adc.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -66,7 +66,7 @@ unsigned char debug_secs = 0;
 //volatile unsigned short mainmenu_timer = 0;
 volatile unsigned short show_select_timer = 0;
 volatile unsigned char switches_timer = 0;
-volatile unsigned char acswitch_timer = 0;
+volatile unsigned short timer_relay = 0;
 
 volatile unsigned short scroll1_timer = 0;
 volatile unsigned short scroll2_timer = 0;
@@ -170,7 +170,6 @@ int main(void)
 	//GPIO Configuration.
 	GPIO_Config();
 
-
 	//ACTIVAR SYSTICK TIMER
 	if (SysTick_Config(48000))
 	{
@@ -191,44 +190,87 @@ int main(void)
 	}
 
 	//--- Prueba de LED ---//
-	while (1)
-	{
-		if (LED)
-			LED_OFF;
-		else
-			LED_ON;
-
-		Wait_ms(1000);
-	}
+	// while (1)
+	// {
+	// 	if (LED)
+	// 		LED_OFF;
+	// 	else
+	// 		LED_ON;
+	//
+	// 	Wait_ms(1000);
+	// }
 	//--- Fin Prueba de LED ---//
 
-	//--- Prueba de LED con SYNC ---//
-	while (1)
-	{
-		if (SYNC)
-			LED_ON;
-		else
-			LED_OFF;
+	//--- PRUEBA CHANNELS PWM
+	// TIM_3_Init ();
+	// while (1)
+	// {
+	// 	for (i = 0; i < 255; i++)
+	// 	{
+	// 		Update_TIM3_CH1 (i);
+	// 		// Update_TIM3_CH2 (i);
+	// 		// Update_TIM3_CH3 (i);
+	// 		// Update_TIM3_CH4 (i);
+	//
+	// 		Wait_ms(100);
+	// 	}
+	// }
+	//--- FIN PRUEBA CHANNELS PWM
 
-	}
+	//--- Prueba de LED con SYNC ---//
+	// while (1)
+	// {
+	// 	if (SYNC)
+	// 		LED_ON;
+	// 	else
+	// 		LED_OFF;
+	//
+	// }
 	//--- Fin Prueba de LED con SYNC ---//
 
 	//--- Prueba de LED con RELAY ---//
+	// while (1)
+	// {
+	// 	if (RELAY)
+	// 	{
+	// 		LED_OFF;
+	// 		RELAY_OFF;
+	// 	}
+	// 	else
+	// 	{
+	// 		LED_ON;
+	// 		RELAY_ON;
+	// 	}
+	// 	Wait_ms(5000);
+	// }
+	//--- Fin Prueba de LED y RELAY ---//
+
+	//--- Prueba de RELAY con SYNC para ajuste ---//
+	TIM_16_Init();
+	LED_OFF;
+	TIM16Enable();
 	while (1)
 	{
-		if (RELAY)
+		if (!timer_standby)
 		{
-			LED_OFF;
-			RELAY_OFF;
+			if (RelayIsOn())
+			{
+				LED_OFF;
+				RelayOff ();
+			}
+			else
+			{
+				LED_ON;
+				RelayOn ();
+			}
+
+			timer_standby = 5000;
+
 		}
-		else
-		{
-			LED_ON;
-			RELAY_ON;
-		}
-		Wait_ms(5000);
+
+		UpdateRelay ();
 	}
-	//--- Fin Prueba de LED y RELAY ---//
+	//--- Fin Prueba de RELAY con SYNC para ajuste ---//
 
 	//---------- Prueba USART1 Single Byte --------//
 	USART1Config();
@@ -382,11 +424,8 @@ void TimingDelay_Decrement(void)		//1ms tick
 	if (timer_standby)
 		timer_standby--;
 
-	if (acswitch_timer)
-		acswitch_timer--;
-
-//	if (prog_timer)
-//		prog_timer--;
+	if (timer_relay)
+		timer_relay--;
 
 	if (take_temp_sample)
 		take_temp_sample--;

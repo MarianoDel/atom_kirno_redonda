@@ -10,8 +10,11 @@
 
 
 //----------- Defines For Configuration -------------
-//----------- Hardware Board Version -------------
+//----------- Hardware Board Version ----------------
 #define VER_1_0
+
+//-------- Led Configuration ------------------------
+//#define LED_AND_SYNC				//mueve el led siguiendo el sync de la red
 
 //-------- Type of Program ----------------
 //#define USE_MQTT_LIB
@@ -27,7 +30,6 @@
 
 #ifdef VER_1_0
 //GPIOA pin0	SYNC
-#define SYNC	((GPIOA->IDR & 0x0001) != 0)
 
 //GPIOA pin1	Light_Sense
 //#define LIGHT	((GPIOA->IDR & 0x0002) != 0)	//en adc
@@ -37,35 +39,43 @@
 
 //GPIOA pin4
 //GPIOA pin5
+#define RELAY ((GPIOA->ODR & 0x0020) != 0)
+#define RELAY_ON	GPIOA->BSRR = 0x00000020
+#define RELAY_OFF GPIOA->BSRR = 0x00200000
 
-//GPIOA pin6	para PWM_CH1
+//GPIOA pin6
 
 //GPIOA pin7
+#define SYNC	((GPIOA->IDR & 0x0080) != 0)	//flanco descendente cuando sube la senoidal
+
 //GPIOB pin0
 //GPIOB pin1
 
 //GPIOA pin8
 //GPIOA pin9
 //GPIOA pin10
-
 //GPIOA pin11
-#define RELAY ((GPIOA->ODR & 0x0800) != 0)
-#define RELAY_ON	GPIOA->BSRR = 0x00000800
-#define RELAY_OFF GPIOA->BSRR = 0x08000000
-
 //GPIOA pin12
-#define LED ((GPIOA->ODR & 0x1000) != 0)
-#define LED_ON	GPIOA->BSRR = 0x00001000
-#define LED_OFF GPIOA->BSRR = 0x10000000
-
 //GPIOA pin13
 //GPIOA pin14
+
 //GPIOA pin15
+#define SYNCP			((GPIOA->ODR & 0x8000) != 0)
+#define SYNCP_ON		GPIOA->BSRR = 0x00008000
+#define SYNCP_OFF		GPIOA->BSRR = 0x80000000
+
+
 //GPIOB pin3
-//GPIOB pin4
+//GPIOB pin4	TIM3_CH1
+
 //GPIOB pin5
 //GPIOB pin6
 //GPIOB pin7
+#define LED ((GPIOB->ODR & 0x0080) != 0)
+#define LED_ON	GPIOB->BSRR = 0x00000080
+#define LED_OFF GPIOB->BSRR = 0x00800000
+
+
 
 #endif	//
 
@@ -123,12 +133,29 @@ typedef enum {
 #define SIZEOF_DATA256	SIZEOF_DATA
 
 
-// ------- de los switches -------
-//void UpdateSwitches (void);
-//unsigned char CheckS1 (void);
-//unsigned char CheckS2 (void);
-//void UpdateACSwitch (void);
-//unsigned char CheckACSw (void);
+//--- Temas con el sync de relay
+#define TT_DELAYED_OFF		5600
+#define TT_DELAYED_ON		6560
+#define TT_RELAY			60		//timeout de espera antes de pegar o despegar el relay
+
+enum Relay_State {
+
+	ST_OFF = 0,
+	ST_WAIT_ON,
+	ST_DELAYED_ON,
+	ST_ON,
+	ST_WAIT_OFF,
+	ST_DELAYED_OFF
+
+};
+
+/* Module Functions ------------------------------------------------------------*/
+void RelayOn (void);
+void RelayOff (void);
+void UpdateRelay (void);
+unsigned char RelayIsOn (void);
+unsigned char RelayIsOff (void);
+
 
 
 #endif /* HARD_H_ */

@@ -102,10 +102,10 @@ SRC += $(DEVDIR)/syscalls/syscalls.c
 #SRC += $(STMSPSRCDDIR)/stm32f0xx_tim.c
 #SRC += $(STMSPSRCDDIR)/stm32f0xx_usart.c
 #SRC += $(STMSPSRCDDIR)/stm32f0xx_wwdg.c
-SRC += ./src/stm32f0xx_it.c
+SRC += ./src/it.c
 SRC += ./src/gpio.c
 SRC += ./src/tim.c
-#SRC += ./src/hard.c
+SRC += ./src/hard.c
 SRC += ./src/adc.c
 SRC += ./src/uart.c
 SRC += ./src/flash_program.c
@@ -218,19 +218,23 @@ $(assobjects): %.o: %.s
 	$(BIN)  $< $@
 
 flash:
-	sudo openocd -f stm32f0discovery.cfg -c $(OCDCMN)
-	#sudo openocd -f stm32f0discovery.cfg
+	sudo openocd -f stm32f0_flash.cfg
+
+gdb:
+	sudo openocd -f stm32f0_gdb.cfg
+
+reset:
+	sudo openocd -f stm32f0_reset.cfg
 
 clean:
-	rm -f ./src/*.lst
 	rm -f $(OBJS)
 	rm -f $(FULL_PRJ).elf
 	rm -f $(FULL_PRJ).map
-#	rm $(FULL_PRJ).hex
+	rm -f $(FULL_PRJ).hex
 	rm -f $(FULL_PRJ).bin
 #	rm $(SRC:.c=.c.bak)
-#	rm $(SRC:.c=.lst)
+	rm -f $(SRC:.c=.lst)
 #   rm $(ASRC:.s=.s.bak)
-#	rm $(ASRC:.s=.lst)
+	rm -f $(ASRC:.s=.lst)
 
 # *** EOF ***
