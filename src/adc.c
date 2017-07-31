@@ -7,17 +7,39 @@
 #include "adc.h"
 #include "stm32f0xx.h"
 #include "hard.h"
+#include "dsp.h"
 
 
 //--- VARIABLES EXTERNAS ---//
 extern volatile unsigned short adc_ch [];
+extern volatile unsigned short tt_take_photo_sample;
 
 #ifdef ADC_WITH_INT
 extern volatile unsigned char seq_ready;
 #endif
 
+#ifdef ADC_WITH_TEMP_SENSE
+extern volatile unsigned short tt_take_temp_sample;
+#endif
+
 //--- VARIABLES GLOBALES ---//
-//volatile unsigned char channel_conv = 0;
+#ifdef ADC_WITH_TEMP_SENSE
+// ------- del sensor de Temperatura -------
+unsigned short board_temp [SIZEOF_BOARD_TEMP];
+unsigned short last_temp = 0;
+unsigned char board_temp_index = 0;
+unsigned char new_temp_sample = 0;
+#endif
+
+// ------- del PhotoTransistor -------
+#define SIZEOF_PHOTO_TRANS		32
+#define DIVISOR_PHOTO			5
+unsigned short VoltagePhoto [SIZEOF_PHOTO_TRANS];
+unsigned char photo_index = 0;
+unsigned short last_photo = 0;
+unsigned char new_photo_sample = 0;
+
+
 
 //Single conversion mode (CONT=0)
 //In Single conversion mode, the ADC performs a single sequence of conversions,
@@ -84,6 +106,10 @@ void AdcConfig (void)
 	NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
+#endif
+
+#ifdef ADC_WITH_TEMP_SENSE
+	ADC->CCR |= ADC_CCR_TSEN;
 #endif
 
 	//calibrar ADC
@@ -253,4 +279,133 @@ unsigned int ADCGetCalibrationFactor (void)
     tmpreg = 0x00000000;
   }
   return tmpreg;
+}
+
+void UpdateTemp(void)
+{
+	//hago update cada 1 seg
+	if (!tt_take_temp_sample)
+	{
+		tt_take_temp_sample = 1000;
+
+		board_temp [board_temp_index] = ReadADC1_SameSampleTime(ADC_CH16);
+		//board_temp [0] = ReadADC1_SameSampleTime(ADC_CH16);
+
+		if (board_temp_index < (SIZEOF_BOARD_TEMP - 1))
+			board_temp_index++;
+		else
+			board_temp_index = 0;
+
+		new_temp_sample = 1;
+	}
+}
+
+//devuelve el valor promedio de la temperatura
+//si existen nuevas muestras hace la cuenta, sino contesta el ultimo valor calculado
+unsigned short GetTemp (void)
+{
+    unsigned char i;
+    unsigned int t = 0;
+
+    if (new_temp_sample)
+    {
+        for (i = 0; i < SIZEOF_BOARD_TEMP; i++)
+            t += board_temp[i];
+
+        last_temp = t >> 3;
+        new_temp_sample = 0;
+    }
+
+    return ConvertTemp(last_temp);
+}
+
+void FillTempBuffer (void)
+{
+	unsigned char i;
+	unsigned short dummy;
+
+	dummy = ReadADC1_SameSampleTime(ADC_CH16);
+
+	for (i = 0; i < SIZEOF_BOARD_TEMP; i++)
+	{
+		 board_temp[i] = dummy;
+	}
+}
+
+short ConvertTemp (unsigned short adc_temp)
+{
+	int32_t temperature; /* will contain the temperature in degree Celsius */
+	//temperature = (((int32_t) ADC1->DR * VDD_APPLI / VDD_CALIB) - (int32_t) *TEMP30_CAL_ADDR );
+	temperature = (int32_t) *TEMP30_CAL_ADDR - adc_temp;
+	temperature *= 1000;
+	temperature = temperature / 5336;	//4.3mV / °C
+	temperature = temperature + 30;
+
+	return (short) temperature;
+
+   //  short dy = 110 - 30;
+   //  short dt = 0;
+   //  short temp = 0;
+	 //
+   //  dt = *TEMP110_CAL_ADDR - *TEMP30_CAL_ADDR;
+	 //
+   //  temp = t_sample - *TEMP30_CAL_ADDR;
+   //  temp = temp * dy;
+   //  temp = temp / dt;
+   //  //temp = temp + 30;
+   //  temp = temp + 20;    //resto 10 para compensar por temperatura exterior
+	 //
+   //  return temp;
+}
+
+void UpdatePhotoTransistor(void)
+{
+	//hago update cada 1 seg
+	if (!tt_take_photo_sample)
+	{
+		tt_take_photo_sample = 1000;
+
+		VoltagePhoto [photo_index] = ReadADC1_SameSampleTime(ADC_CH1);
+
+		if (photo_index < (SIZEOF_PHOTO_TRANS - 1))
+			photo_index++;
+		else
+			photo_index = 0;
+
+		new_photo_sample = 1;
+	}
+}
+
+void FillPhotoBuffer (void)
+{
+	unsigned char i;
+	unsigned short dummy;
+
+	dummy = ReadADC1_SameSampleTime(ADC_CH1);
+
+	for (i = 0; i < SIZEOF_PHOTO_TRANS; i++)
+	{
+		 VoltagePhoto[i] = dummy;
+	}
+}
+
+//devuelve el valor promedio del PhotoTransistor
+//si existen nuevas muestras hace la cuenta, sino contesta el ultimo valor calculado
+unsigned short GetPhoto (void)
+{
+    unsigned char i;
+    unsigned int t = 0;
+
+    if (new_photo_sample)
+    {
+        for (i = 0; i < SIZEOF_PHOTO_TRANS; i++)
+        {
+            t += VoltagePhoto[i];
+        }
+
+        last_photo = t >> DIVISOR_PHOTO;
+        new_photo_sample = 0;
+    }
+
+    return last_photo;
 }

@@ -16,6 +16,10 @@
 //-------- Led Configuration ------------------------
 //#define LED_AND_SYNC				//mueve el led siguiendo el sync de la red
 
+//-------- Voltage Conf ------------------------
+#define VOLTAGE_PHOTO_OFF	3302
+#define VOLTAGE_PHOTO_ON	3722
+
 //-------- Type of Program ----------------
 //#define USE_MQTT_LIB
 //#define USE_GPS
@@ -85,46 +89,16 @@
 
 
 //ESTADOS DEL PROGRAMA PRINCIPAL
-//ESTADOS DEL PROGRAMA PRINCIPAL EN MODO MQTT
-#ifdef WIFI_TO_MQTT_BROKER
-typedef enum {
-  wifi_state_reset = 0,
-  wifi_state_ready,
-  wifi_state_sending_conf,
-  wifi_state_wait_ip,
-  wifi_state_wait_ip1,
-  wifi_state_idle,
-  wifi_state_connecting,
-  wifi_state_connected,
-  wifi_state_disconnected,
-  wifi_state_error,
-  wifi_state_socket_close,
-  mqtt_socket_create,
-  client_conn,
-  mqtt_connect,
-  mqtt_sub,
-  mqtt_pub,
-  mqtt_device_control,
-  wifi_undefine_state       = 0xFF,
-} wifi_state_t;
-#endif
+typedef enum
+{
+	MAIN_INIT = 0,
+  	LAMP_OFF,
+ //  	LAMP_TO_ON,
+	LAMP_ON,
+	// LAMP_TO_OFF
 
-#define MAIN_INIT				0
-#define MAIN_INIT_1				1
-#define MAIN_SENDING_CONF		2
-#define MAIN_WAIT_CONNECT_0		3
-#define MAIN_WAIT_CONNECT_1		4
-#define MAIN_WAIT_CONNECT_2		5
-#define MAIN_READING_TCP		6
-#define MAIN_TRANSPARENT		7
-#define MAIN_AT_CONFIG_2B		8
-#define MAIN_ERROR				9
+} main_state_t;
 
-#define MAIN_STAND_ALONE		10
-#define MAIN_GROUPED			11
-#define MAIN_NETWORKED			12
-#define MAIN_NETWORKED_1		13
-#define MAIN_IN_MAIN_MENU		14
 
 
 #define SIZEOF_DATA1	512
@@ -134,8 +108,10 @@ typedef enum {
 
 
 //--- Temas con el sync de relay
-#define TT_DELAYED_OFF		5600
-#define TT_DELAYED_ON		6560
+//#define TT_DELAYED_OFF		5600		//para relay metab
+//#define TT_DELAYED_ON		6560		//para relay metab
+#define TT_DELAYED_OFF		3600		//para relay placa redonda
+#define TT_DELAYED_ON		4560		//para relay placa redonda
 #define TT_RELAY			60		//timeout de espera antes de pegar o despegar el relay
 
 enum Relay_State {

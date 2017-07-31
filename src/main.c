@@ -79,18 +79,16 @@ volatile unsigned short take_temp_sample = 0;
 volatile unsigned short minutes = 0;
 volatile unsigned char timer_wifi_bright = 0;
 
+volatile unsigned short tt_take_photo_sample;
+volatile unsigned short tt_relay_on_off;
+
+#ifdef ADC_WITH_TEMP_SENSE
+volatile unsigned short tt_take_temp_sample;
+#endif
+
 
 unsigned char saved_mode;
 
-// ------- para determinar igrid -------
-volatile unsigned char igrid_timer = 0;
-volatile unsigned char vgrid_timer = 0;
-
-// ------- Externals de los switches -------
-unsigned short s1;
-unsigned short s2;
-unsigned short sac;
-unsigned char sac_aux;
 
 
 //------ GLOBAL VARIABLES ------//
@@ -108,15 +106,6 @@ volatile unsigned char filter_timer;
 volatile unsigned short secs = 0;
 
 
-// ------- de los filtros DMX -------
-#define LARGO_F		32
-#define DIVISOR_F	5
-unsigned char vd0 [LARGO_F + 1];
-unsigned char vd1 [LARGO_F + 1];
-unsigned char vd2 [LARGO_F + 1];
-unsigned char vd3 [LARGO_F + 1];
-unsigned char vd4 [LARGO_F + 1];
-
 
 //--- FUNCIONES DEL MODULO ---//
 void TimingDelay_Decrement(void);
@@ -126,13 +115,13 @@ void UpdatePackets (void);
 // ------- del display -------
 
 
-//--- FILTROS DE SENSORES ---//
-#define LARGO_FILTRO 16
-#define DIVISOR      4   //2 elevado al divisor = largo filtro
-//#define LARGO_FILTRO 32
-//#define DIVISOR      5   //2 elevado al divisor = largo filtro
-unsigned short vtemp [LARGO_FILTRO + 1];
-unsigned short vpote [LARGO_FILTRO + 1];
+// //--- FILTROS DE SENSORES ---//
+// #define LARGO_FILTRO 16
+// #define DIVISOR      4   //2 elevado al divisor = largo filtro
+// //#define LARGO_FILTRO 32
+// //#define DIVISOR      5   //2 elevado al divisor = largo filtro
+// unsigned short vtemp [LARGO_FILTRO + 1];
+// unsigned short vpote [LARGO_FILTRO + 1];
 
 //--- FIN DEFINICIONES DE FILTRO ---//
 
@@ -145,22 +134,12 @@ unsigned short vpote [LARGO_FILTRO + 1];
 int main(void)
 {
 	unsigned char i,ii;
-	unsigned char bytes_remain, bytes_read, need_ack = 0;
 //	unsigned char resp = RESP_CONTINUE;
-	unsigned short local_meas, local_meas_last;
-	unsigned char main_state = 0;
-	char s_lcd [20];
-	unsigned char new_room = 0;
-	unsigned char new_lamp = 0;
-	unsigned char last_bright = 0;
-	unsigned char show_ldr = 0;
-	int dummy_resp = 0;
-	unsigned char pps_one = 0;
+	unsigned short local_meas;
+	main_state_t main_state = MAIN_INIT;
+	unsigned short ts_cal1, ts_cal2;
+	char s_lcd [64];
 
-#ifdef USE_PROD_PROGRAM
-	unsigned char jump_the_menu = 0;
-#endif
-	parameters_typedef * p_mem_init;
 	//!< At this stage the microcontroller clock setting is already configured,
     //   this is done through SystemInit() function which is called from startup
     //   file (startup_stm32f0xx.s) before to branch to application main.
@@ -246,53 +225,196 @@ int main(void)
 	//--- Fin Prueba de LED y RELAY ---//
 
 	//--- Prueba de RELAY con SYNC para ajuste ---//
-	TIM_16_Init();
-	LED_OFF;
-	TIM16Enable();
-	while (1)
-	{
-		if (!timer_standby)
-		{
-			if (RelayIsOn())
-			{
-				LED_OFF;
-				RelayOff ();
-			}
-			else
-			{
-				LED_ON;
-				RelayOn ();
-			}
-
-			timer_standby = 5000;
-
-		}
-
-		UpdateRelay ();
-	}
+	// TIM_16_Init();
+	// LED_OFF;
+	// TIM16Enable();
+	// while (1)
+	// {
+	// 	if (!timer_standby)
+	// 	{
+	// 		if (RelayIsOn())
+	// 		{
+	// 			LED_OFF;
+	// 			RelayOff ();
+	// 			timer_standby = 5000;
+	// 		}
+	// 		else
+	// 		{
+	// 			LED_ON;
+	// 			RelayOn ();
+	// 			timer_standby = 30;
+	// 		}
+	// 	}
+	//
+	// 	UpdateRelay ();
+	// }
 	//--- Fin Prueba de RELAY con SYNC para ajuste ---//
 
 	//---------- Prueba USART1 Single Byte --------//
-	USART1Config();
-	while (1)
-	{
-		Usart1SendSingle('M');
-		Wait_ms(3000);
-	}
+	// USART1Config();
+	// while (1)
+	// {
+	// 	LED_ON;
+	// 	Usart1SendSingle('M');
+	// 	Wait_ms(100);
+	// 	LED_OFF;
+	// 	Wait_ms(2900);
+	// }
 	//---------- Fin Prueba USART1 Single Byte --------//
 
 	//---------- Prueba USART1 Multiple Bytes --------//
-	USART1Config();
-   while( 1 )
-   {
-		Usart1Send((char *) (const char *) "Kirno debug placa redonda\r\n");
-		Wait_ms(3000);
-   }
+	// USART1Config();
+   // while( 1 )
+   // {
+	// 	LED_ON;
+	// 	Usart1Send((char *) (const char *) "Kirno debug placa redonda\r\n");
+	// 	Wait_ms(100);
+	// 	LED_OFF;
+	// 	Wait_ms(2900);
+   // }
    //---------- Fin Prueba USART1 Single Bytes --------//
+
+	//---------- Prueba USART1 Rx -> Tx Multiple Bytes --------//
+	// USART1Config();
+	// Usart1Send((char *) (const char *) "\r\nKirno debug placa redonda\r\n");
+   // while( 1 )
+   // {
+	// 	if (usart1_pckt_ready)
+	// 	{
+	// 		LED_ON;
+	// 		usart1_pckt_ready = 0;
+	// 		ii = ReadUsart1Buffer (s_lcd, 64);
+	// 		if (ii)
+	// 		{
+	// 			*(s_lcd + ii) = '\0';
+	// 			Usart1Send(s_lcd);
+	// 		}
+	//
+	// 	}
+	// 	Wait_ms(100);
+	// 	LED_OFF;
+   // }
+   //---------- Fin Prueba USART1 Rx -> Tx Multiple Bytes --------//
+
+	//---------- Prueba PhotoTransistor y USART1  --------//
+	// USART1Config();
+	// AdcConfig();
+	// Usart1Send((char *) (const char *) "\r\nKirno debug placa redonda\r\n");
+   // while( 1 )
+   // {
+	// 	LED_ON;
+	// 	local_meas = ReadADC1_SameSampleTime (ADC_CH1);
+	// 	sprintf(s_lcd, "medida: %d\r\n", local_meas);
+	// 	Usart1Send(s_lcd);
+	// 	LED_OFF;
+	// 	Wait_ms(1000);
+   // }
+   //---------- Fin Prueba PhotoTransistor y USART1 --------//
+
+	//---------- Prueba Temperatura y USART1  --------//
+	// USART1Config();
+	// AdcConfig();		//recordar habilitar sensor en adc.h
+	// Usart1Send((char *) (const char *) "\r\nKirno debug placa redonda\r\n");
+	//
+	// //calibracion de fabrica del sensor
+	// ts_cal1 = *((uint16_t*)0x1FFFF7B8);		//30°
+	// ts_cal2 = *((uint16_t*)0x1FFFF7C2);
+	// sprintf(s_lcd, "ts_cal1_30: %d, ts_cal2_110: %d\r\n", ts_cal1, ts_cal2);
+	// Usart1Send(s_lcd);
+	// Wait_ms(2000);
+	//
+   // while( 1 )
+   // {
+	// 	if (!timer_standby)
+	// 	{
+	// 		LED_ON;
+	// 		local_meas = GetTemp();
+	//
+	// 		sprintf(s_lcd, "temp: %d, %d\r\n", ConvertTemp(local_meas), ii);
+	// 		// sprintf(s_lcd, "temp: %d\r\n", ii);
+	// 		if (ii < 99)
+	// 			ii++;
+	// 		else
+	// 			ii = 0;
+	//
+	// 		Usart1Send(s_lcd);
+	// 		timer_standby = 2000;
+	// 		LED_OFF;
+	// 	}
+	// 	UpdateTemp();
+   // }
+   //---------- Fin Prueba Temperatura y USART1 --------//
+
+	//---------- Inicio Programa de Produccion --------//
+	USART1Config();
+	AdcConfig();		//recordar habilitar sensor en adc.h
+
+	TIM_16_Init();
+	TIM16Enable();
+
+	Usart1Send((char *) (const char *) "\r\nKirno Placa Redonda - Basic V1.0\r\n");
+	timer_standby = 2000;
+
+	while (1)
+	{
+		switch (main_state)
+		{
+			case MAIN_INIT:
+				RelayOff();
+				LED_OFF;
+				FillPhotoBuffer();
+				FillTempBuffer();
+				main_state = LAMP_OFF;
+				break;
+
+			case LAMP_OFF:
+				if (!tt_relay_on_off)
+				{
+					if (GetPhoto() > VOLTAGE_PHOTO_ON)
+					{
+						main_state = LAMP_ON;
+						tt_relay_on_off = 10000;
+						RelayOn();
+						LED_ON;
+					}
+				}
+				break;
+
+			case LAMP_ON:
+				if (!tt_relay_on_off)
+				{
+					if (GetPhoto() < VOLTAGE_PHOTO_OFF)
+					{
+						main_state = LAMP_OFF;
+						tt_relay_on_off = 10000;
+						RelayOff();
+						LED_OFF;
+					}
+				}
+				break;
+
+			default:
+				main_state = MAIN_INIT;
+				break;
+		}
+
+		if (!timer_standby)
+		{
+			sprintf(s_lcd, "temp: %d, photo: %d\r\n", GetTemp(), GetPhoto());
+			//sprintf(s_lcd, "temp: %d, photo: %d\r\n", GetTemp(), ReadADC1_SameSampleTime (ADC_CH1));
+			Usart1Send(s_lcd);
+			timer_standby = 2000;
+		}
+
+		//Cosas que no dependen del estado del programa
+		UpdateRelay ();
+		UpdateTemp();
+		UpdatePhotoTransistor();
+	}
 
 
 	//ADC Configuration
-//	AdcConfig();
+
 
 	//TIM Configuration.
 	TIM_3_Init();
@@ -365,45 +487,6 @@ int main(void)
 	//---------- Fin prueba 1 to 10V --------//
 
 
-    //---------- Programa de Produccion --------//
-#ifdef USE_PROD_PROGRAM
-	//--- PRUEBA FUNCION MAIN_MENU
-	//leo la memoria, si tengo configuracion de modo
-	//entro directo, sino a Main Menu
-	if (saved_mode == 0xFF)	//memoria borrada
-		main_state = MAIN_INIT;
-	// else
-	// 	jump_the_menu = RESP_YES;
-
-	//Wait_ms(2000);
-	while (1)
-	{
-		switch (main_state)
-		{
-			case MAIN_INIT:
-				break;
-
-			case MAIN_STAND_ALONE:
-				break;
-
-			case MAIN_GROUPED:
-				break;
-
-			default:
-				main_state = MAIN_INIT;
-				break;
-
-		}
-
-		// UpdateSwitches();
-		// UpdateACSwitch();
-		// UpdatePackets();
-		ProcessMessages();
-		UpdateMessages();
-	}
-
-	//--- FIN PRUEBA FUNCION MAIN_MENU
-#endif
 	//---------- Fin Programa de Procduccion --------//
 
 	return 0;
@@ -427,8 +510,16 @@ void TimingDelay_Decrement(void)		//1ms tick
 	if (timer_relay)
 		timer_relay--;
 
-	if (take_temp_sample)
-		take_temp_sample--;
+#ifdef ADC_WITH_TEMP_SENSE
+	if (tt_take_temp_sample)
+		tt_take_temp_sample--;
+#endif
+
+	if (tt_take_photo_sample)
+		tt_take_photo_sample--;
+
+	if (tt_relay_on_off)
+		tt_relay_on_off--;
 
 	if (filter_timer)
 		filter_timer--;

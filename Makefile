@@ -111,6 +111,7 @@ SRC += ./src/uart.c
 SRC += ./src/flash_program.c
 SRC += ./src/synchro.c
 SRC += ./src/messages.c
+SRC += ./src/dsp.c
 
 ## System Support
 #SRC += ./cmsis_boot/system_stm32f0xx.c

@@ -25,9 +25,6 @@ extern volatile unsigned char timer_1seg;
 extern volatile unsigned short timer_led_comm;
 extern volatile unsigned short wait_ms_var;
 
-// ------- para determinar igrid -------
-extern volatile unsigned char igrid_timer;
-extern volatile unsigned char vgrid_timer;
 
 //--- VARIABLES GLOBALES ---//
 
@@ -238,9 +235,6 @@ void TIM16Disable (void)
 
 void TIM17_IRQHandler (void)	//200uS
 {
-	igrid_timer = 1;
-	vgrid_timer = 1;
-
 	if (TIM17->SR & 0x01)
 		TIM17->SR = 0x00;		//bajar flag
 }

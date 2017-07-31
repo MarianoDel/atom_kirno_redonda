@@ -79,7 +79,8 @@ void USART1Config(void)
 //	USART1->CR2 |= USART_CR2_STOP_1;	//2 bits stop
 //	USART1->CR1 = USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;
 //	USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//SIN TX
-	USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;	//para pruebas TX
+//	USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;	//para pruebas TX
+	USART1->CR1 = USART_CR1_TE | USART_CR1_UE;	//para pruebas sin RX
 
 	NVIC_EnableIRQ(USART1_IRQn);
 	NVIC_SetPriority(USART1_IRQn, 5);
@@ -132,6 +133,16 @@ void USART1_IRQHandler(void)
 	}
 }
 
+void Usart1IntEnable (void)
+{
+	USART1->CR1 |= USART_CR1_TXEIE;
+}
+
+void Usart1IntDisable (void)
+{
+	USART1->CR1 &= ~USART_CR1_TXEIE;
+}
+
 void Usart1Send (char * send)
 {
 	unsigned char i;
@@ -142,18 +153,29 @@ void Usart1Send (char * send)
 
 void Usart1SendUnsigned(unsigned char * send, unsigned char size)
 {
+//	Usart1IntDisable ();
 	if ((ptx1_pckt_index + size) < &tx1buff[SIZEOF_DATA])
 	{
 		memcpy((unsigned char *)ptx1_pckt_index, send, size);
 		ptx1_pckt_index += size;
 		USART1->CR1 |= USART_CR1_TXEIE;
 	}
+//	Usart1IntEnable ();
 }
 
 void Usart1SendSingle(unsigned char tosend)
 {
 	Usart1SendUnsigned(&tosend, 1);
 }
+
+// unsigned char Buffer1Ready (void)
+// {
+// 	if (usart1_pckt_ready)
+// 	{
+// 		usart1_pckt_ready = 0;
+// 		Usart1Send(s_lcd);
+// 	}
+// }
 
 unsigned char ReadUsart1Buffer (unsigned char * bout, unsigned short max_len)
 {

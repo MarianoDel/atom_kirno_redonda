@@ -49,6 +49,8 @@ void USART1_IRQHandler(void);
 void Usart1Send (char *);
 void Usart1SendUnsigned(unsigned char *, unsigned char);
 void Usart1SendSingle(unsigned char );
+void Usart1IntEnable (void);
+void Usart1IntDisable (void);
 
 void USART2_IRQHandler(void);
 void USART2Config(void);

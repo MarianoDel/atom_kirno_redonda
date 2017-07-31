@@ -8,9 +8,26 @@
 #ifndef ADC_H_
 #define ADC_H_
 
+//----------- Defines For Configuration --------------//
+//----------- Some ADC Configurations ----------------//
+//#define ADC_WITH_INT
+#define ADC_WITH_TEMP_SENSE
+
+#ifdef ADC_WITH_TEMP_SENSE
+#define SIZEOF_BOARD_TEMP		8
+#endif
+//----------- End of ADC Configurations --------------//
+
 #define RCC_ADC_CLK 		(RCC->APB2ENR & 0x00000200)
 #define RCC_ADC_CLK_ON 		RCC->APB2ENR |= 0x00000200
 #define RCC_ADC_CLK_OFF 	RCC->APB2ENR &= ~0x00000200
+
+/* Temperature sensor calibration value address */
+#define TEMP110_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7C2))
+#define TEMP30_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7B8))
+#define VDD_CALIB ((uint16_t) (330))
+#define VDD_APPLI ((uint16_t) (330))
+
 
 #define ADC_IT_ADRDY                               ADC_IER_ADRDYIE
 #define ADC_IT_EOSMP                               ADC_IER_EOSMPIE
@@ -22,6 +39,8 @@
 #define ADC_CH0		0x00000001
 #define ADC_CH1		0x00000002
 #define ADC_CH2		0x00000004
+
+#define ADC_CH16		0x00010000
 
 #define ADC_Channel_0                              ADC_CHSELR_CHSEL0
 #define ADC_Channel_1                              ADC_CHSELR_CHSEL1
@@ -119,5 +138,12 @@ unsigned short ReadADC1_SameSampleTime (unsigned int);
 void SetADC1_SampleTime (void);
 unsigned short ReadADC1Check (unsigned char);
 unsigned int ADCGetCalibrationFactor (void);
+void UpdateTemp(void);
+unsigned short GetTemp (void);
+short ConvertTemp (unsigned short );
+void UpdatePhotoTransistor(void);
+unsigned short GetPhoto (void);
+void FillTempBuffer (void);
+void FillPhotoBuffer (void);
 
 #endif /* ADC_H_ */

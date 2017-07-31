@@ -64,8 +64,8 @@ void Update_TIM3_CH3 (unsigned short);
 void Update_TIM3_CH4 (unsigned short);
 
 void OneShootTIM16 (unsigned short);
-void TIM6Enable (void);
-void TIM6Disable (void);
+void TIM16Enable (void);
+void TIM16Disable (void);
 
 void Wait_ms (unsigned short wait);
 #endif
