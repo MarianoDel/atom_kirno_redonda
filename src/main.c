@@ -16,12 +16,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx.h"
-//#include "stm32f0xx_adc.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
 
 //--- My includes ---//
 #include "gpio.h"
@@ -35,9 +33,8 @@
 #include "synchro.h"
 #include "messages.h"
 
-//--- VARIABLES EXTERNAS ---//
 
-
+//------ EXTERNAL VARIABLES ------//
 
 // ------- Externals of USARTs  ----------
 #ifdef USE_USART1
@@ -61,7 +58,7 @@ unsigned short mains_var = 0;
 unsigned char pwm = 0;
 unsigned char debug_secs = 0;
 
-// ------- Externals de los timers -------
+// ------- Externals for the timers -------
 volatile unsigned short timer_relay = 0;			//para relay default (si no hay synchro)
 volatile unsigned short take_temp_sample = 0;
 volatile unsigned short tt_take_photo_sample;
@@ -72,22 +69,12 @@ volatile unsigned short tt_take_temp_sample;
 #endif
 
 
-unsigned char saved_mode;
-
-
-
 //------ GLOBAL VARIABLES ------//
 parameters_typedef param_struct;
 
-// ------- de los timers -------
+// ------- for the timers -------
 volatile unsigned short wait_ms_var = 0;
 volatile unsigned short timer_standby;
-// //volatile unsigned char display_timer;
-// volatile unsigned char filter_timer;
-//
-// //volatile unsigned char door_filter;
-// //volatile unsigned char take_sample;
-// //volatile unsigned char move_relay;
 
 #ifdef WITH_HYST
 volatile unsigned short secs = 0;		//OJO cuenta en ms
@@ -97,24 +84,10 @@ volatile unsigned char minutes = 0;
 
 
 
-//--- FUNCIONES DEL MODULO ---//
+//--- Functions in this Moodule ---//
 void TimingDelay_Decrement(void);
 void Update_PWM (unsigned short);
 void UpdatePackets (void);
-
-// ------- del display -------
-
-
-// //--- FILTROS DE SENSORES ---//
-// #define LARGO_FILTRO 16
-// #define DIVISOR      4   //2 elevado al divisor = largo filtro
-// //#define LARGO_FILTRO 32
-// //#define DIVISOR      5   //2 elevado al divisor = largo filtro
-// unsigned short vtemp [LARGO_FILTRO + 1];
-// unsigned short vpote [LARGO_FILTRO + 1];
-
-//--- FIN DEFINICIONES DE FILTRO ---//
-
 
 //-------------------------------------------//
 // @brief  Main program.

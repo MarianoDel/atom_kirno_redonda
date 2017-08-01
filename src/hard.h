@@ -144,6 +144,7 @@ void RelayOff (void);
 void UpdateRelay (void);
 unsigned char RelayIsOn (void);
 unsigned char RelayIsOff (void);
+unsigned short GetHysteresis (unsigned char);
 
 
 
