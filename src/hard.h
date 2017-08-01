@@ -17,8 +17,11 @@
 //#define LED_AND_SYNC				//mueve el led siguiendo el sync de la red
 
 //-------- Voltage Conf ------------------------
-#define VOLTAGE_PHOTO_OFF	3302
+#define VOLTAGE_PHOTO_OFF	3322
 #define VOLTAGE_PHOTO_ON	3722
+
+//-------- Hysteresis Conf ------------------------
+#define WITH_HYST
 
 //-------- Type of Program ----------------
 //#define USE_MQTT_LIB
@@ -30,7 +33,17 @@
 //#define USE_CERT_PROGRAM
 #define USE_PROD_PROGRAM
 
+//-------- Others Configurations depending on the formers ------------
+#ifdef WITH_HYST
+#define HYST_MAX	400
+#define HYST_2		340
+#define HYST_4		240
+#define HYST_6		140
+#define HYST_MIN	40
+#endif
+
 //-------- End Of Defines For Configuration ------
+
 
 #ifdef VER_1_0
 //GPIOA pin0	SYNC

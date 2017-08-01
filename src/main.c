@@ -62,23 +62,8 @@ unsigned char pwm = 0;
 unsigned char debug_secs = 0;
 
 // ------- Externals de los timers -------
-//volatile unsigned short prog_timer = 0;
-//volatile unsigned short mainmenu_timer = 0;
-volatile unsigned short show_select_timer = 0;
-volatile unsigned char switches_timer = 0;
-volatile unsigned short timer_relay = 0;
-
-volatile unsigned short scroll1_timer = 0;
-volatile unsigned short scroll2_timer = 0;
-
-volatile unsigned short standalone_timer;
-volatile unsigned short standalone_enable_menu_timer;
-//volatile unsigned short standalone_menu_timer;
-volatile unsigned char grouped_master_timeout_timer;
+volatile unsigned short timer_relay = 0;			//para relay default (si no hay synchro)
 volatile unsigned short take_temp_sample = 0;
-volatile unsigned short minutes = 0;
-volatile unsigned char timer_wifi_bright = 0;
-
 volatile unsigned short tt_take_photo_sample;
 volatile unsigned short tt_relay_on_off;
 
@@ -97,13 +82,18 @@ parameters_typedef param_struct;
 // ------- de los timers -------
 volatile unsigned short wait_ms_var = 0;
 volatile unsigned short timer_standby;
-//volatile unsigned char display_timer;
-volatile unsigned char filter_timer;
+// //volatile unsigned char display_timer;
+// volatile unsigned char filter_timer;
+//
+// //volatile unsigned char door_filter;
+// //volatile unsigned char take_sample;
+// //volatile unsigned char move_relay;
 
-//volatile unsigned char door_filter;
-//volatile unsigned char take_sample;
-//volatile unsigned char move_relay;
-volatile unsigned short secs = 0;
+#ifdef WITH_HYST
+volatile unsigned short secs = 0;		//OJO cuenta en ms
+volatile unsigned char hours = 0;
+volatile unsigned char minutes = 0;
+#endif
 
 
 
@@ -134,11 +124,13 @@ void UpdatePackets (void);
 int main(void)
 {
 	unsigned char i,ii;
-//	unsigned char resp = RESP_CONTINUE;
 	unsigned short local_meas;
 	main_state_t main_state = MAIN_INIT;
 	unsigned short ts_cal1, ts_cal2;
 	char s_lcd [64];
+#ifdef WITH_HYST
+	unsigned short hyst;
+#endif
 
 	//!< At this stage the microcontroller clock setting is already configured,
     //   this is done through SystemInit() function which is called from startup
@@ -376,6 +368,9 @@ int main(void)
 						tt_relay_on_off = 10000;
 						RelayOn();
 						LED_ON;
+#ifdef WITH_HYST
+						hours = 0;
+#endif
 					}
 				}
 				break;
@@ -383,7 +378,12 @@ int main(void)
 			case LAMP_ON:
 				if (!tt_relay_on_off)
 				{
+#ifdef WITH_HYST		//con Hysteresis apaga casi en el mismo punto en el que prende
+					hyst = GetHysteresis (hours);
+					if (GetPhoto() < (VOLTAGE_PHOTO_ON - hyst))
+#else
 					if (GetPhoto() < VOLTAGE_PHOTO_OFF)
+#endif
 					{
 						main_state = LAMP_OFF;
 						tt_relay_on_off = 10000;
@@ -412,81 +412,6 @@ int main(void)
 		UpdatePhotoTransistor();
 	}
 
-
-	//ADC Configuration
-
-
-	//TIM Configuration.
-	TIM_3_Init();
-//	TIM_14_Init();
-//	TIM_16_Init();		//para OneShoot() cuando funciona en modo master
-//	TIM_17_Init();		//lo uso para el ADC de Igrid
-
-//	EXTIOff ();
-
-
-	//--- Welcome code ---//
-	LED_OFF;
-	RELAY_ON;
-
-	EXTIOff();
-
-
-
-
-
-
-	//---------- Prueba temp --------//
-	/*
-	while (1)
-	{
-		local_meas = GetTemp();
-		if (local_meas != local_meas_last)
-		{
-			LED_ON;
-			local_meas_last = local_meas;
-			LCD_2DO_RENGLON;
-			LCDTransmitStr((const char *) "Brd Temp:       ");
-			local_meas = ConvertTemp(local_meas);
-			sprintf(s_lcd, "%d", local_meas);
-			Lcd_SetDDRAM(0x40 + 10);
-			LCDTransmitStr(s_lcd);
-			LED_OFF;
-		}
-
-		UpdateTemp();
-	}
-	*/
-	//---------- Fin prueba temp --------//
-
-	//---------- Prueba 1 to 10V --------//
-	/*
-	local_meas = 0;
-	while (1)
-	{
-		LCD_2DO_RENGLON;
-		LCDTransmitStr((const char *) "1 to 10V:       ");
-		fcalc = local_meas;
-		fcalc = fcalc * K_1TO10;
-		one_int = (short) fcalc;
-		fcalc = fcalc - one_int;
-		fcalc = fcalc * 10;
-		one_dec = (short) fcalc;
-
-		sprintf(s_lcd, "%02d.%01d V", one_int, one_dec);
-		Lcd_SetDDRAM(0x40 + 10);
-		LCDTransmitStr(s_lcd);
-
-		Wait_ms (1000);
-		if (local_meas <= 255)
-			local_meas = 0;
-		else
-			local_meas++;
-	}
-	*/
-	//---------- Fin prueba 1 to 10V --------//
-
-
 	//---------- Fin Programa de Procduccion --------//
 
 	return 0;
@@ -501,19 +426,11 @@ void TimingDelay_Decrement(void)		//1ms tick
 	if (wait_ms_var)
 		wait_ms_var--;
 
-//	if (display_timer)
-//		display_timer--;
-
 	if (timer_standby)
 		timer_standby--;
 
 	if (timer_relay)
 		timer_relay--;
-
-#ifdef ADC_WITH_TEMP_SENSE
-	if (tt_take_temp_sample)
-		tt_take_temp_sample--;
-#endif
 
 	if (tt_take_photo_sample)
 		tt_take_photo_sample--;
@@ -521,26 +438,27 @@ void TimingDelay_Decrement(void)		//1ms tick
 	if (tt_relay_on_off)
 		tt_relay_on_off--;
 
-	if (filter_timer)
-		filter_timer--;
+#ifdef ADC_WITH_TEMP_SENSE
+	if (tt_take_temp_sample)
+		tt_take_temp_sample--;
+#endif
 
-	if (secs < 1000)
-		secs++;
-	else
+#ifdef WITH_HYST
+	//cuenta de a 1 minuto
+	if (secs > 59999)	//pasaron 1 min
 	{
+		minutes++;
 		secs = 0;
-		if (debug_secs)
-		debug_secs--;
 	}
-	// //cuenta de a 1 minuto
-	// if (secs > 59999)	//pasaron 1 min
-	// {
-	// 	minutes++;
-	// 	secs = 0;
-	// }
-	// else
-	// 	secs++;
-	//
+	else
+		secs++;
+
+	if (minutes > 60)
+	{
+		hours++;
+		minutes = 0;
+	}
+#endif
 }
 
 //------ EOF -------//

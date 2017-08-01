@@ -144,3 +144,19 @@ void UpdateRelay (void)
 			break;
 	}
 }
+
+#ifdef WITH_HYST
+unsigned short GetHysteresis (unsigned char hours_past)
+{
+	if (hours_past > 8)
+		return HYST_MIN;
+	else if (hours_past > 6)
+		return HYST_6;
+	else if (hours_past > 4)
+		return HYST_4;
+	else if (hours_past > 2)
+		return HYST_2;
+	else
+		return HYST_MAX;
+}
+#endif

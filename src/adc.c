@@ -327,9 +327,8 @@ void FillTempBuffer (void)
 	dummy = ReadADC1_SameSampleTime(ADC_CH16);
 
 	for (i = 0; i < SIZEOF_BOARD_TEMP; i++)
-	{
 		 board_temp[i] = dummy;
-	}
+
 }
 
 short ConvertTemp (unsigned short adc_temp)
@@ -342,20 +341,6 @@ short ConvertTemp (unsigned short adc_temp)
 	temperature = temperature + 30;
 
 	return (short) temperature;
-
-   //  short dy = 110 - 30;
-   //  short dt = 0;
-   //  short temp = 0;
-	 //
-   //  dt = *TEMP110_CAL_ADDR - *TEMP30_CAL_ADDR;
-	 //
-   //  temp = t_sample - *TEMP30_CAL_ADDR;
-   //  temp = temp * dy;
-   //  temp = temp / dt;
-   //  //temp = temp + 30;
-   //  temp = temp + 20;    //resto 10 para compensar por temperatura exterior
-	 //
-   //  return temp;
 }
 
 void UpdatePhotoTransistor(void)
@@ -384,9 +369,8 @@ void FillPhotoBuffer (void)
 	dummy = ReadADC1_SameSampleTime(ADC_CH1);
 
 	for (i = 0; i < SIZEOF_PHOTO_TRANS; i++)
-	{
 		 VoltagePhoto[i] = dummy;
-	}
+
 }
 
 //devuelve el valor promedio del PhotoTransistor
