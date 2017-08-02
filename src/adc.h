@@ -8,10 +8,14 @@
 #ifndef ADC_H_
 #define ADC_H_
 
+#include "hard.h"		//por configuracion
+
 //----------- Defines For Configuration --------------//
 //----------- Some ADC Configurations ----------------//
 //#define ADC_WITH_INT
+#ifdef WITH_TEMP_CONTROL
 #define ADC_WITH_TEMP_SENSE
+#endif
 
 #ifdef ADC_WITH_TEMP_SENSE
 #define SIZEOF_BOARD_TEMP		8

@@ -160,3 +160,29 @@ unsigned short GetHysteresis (unsigned char hours_past)
 		return HYST_MAX;
 }
 #endif
+
+#ifdef WITH_1_TO_10_VOLTS
+unsigned char GetNew1to10 (unsigned short light)	//prendo en 3722 a 4095 tengo 373 puntos
+{
+	unsigned short new_light = 0;
+
+	if (light > VOLTAGE_PHOTO_ON)
+	{
+		new_light = light - VOLTAGE_PHOTO_ON;
+	}
+	new_light += PWM_MIN;
+
+	if (new_light > 255)
+		new_light = 255;
+
+	// if (light < VOLTAGE_PHOTO_ON)
+	// 	new_light = PWM_MIN;
+	// else
+	// {
+	// 	new_light = light - VOLTAGE_PHOTO_ON;
+	// 	new_light += PWM_MIN;
+	// }
+
+	return (unsigned char) new_light;
+}
+#endif

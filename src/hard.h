@@ -20,26 +20,31 @@
 #define VOLTAGE_PHOTO_OFF	3322
 #define VOLTAGE_PHOTO_ON	3722
 
-//-------- Hysteresis Conf ------------------------
+
+//-------- Type of Program and Features ----------------
+#define WITH_1_TO_10_VOLTS
 #define WITH_HYST
+#define WITH_TEMP_CONTROL
 
-//-------- Type of Program ----------------
-//#define USE_MQTT_LIB
-//#define USE_GPS
-//#define USE_GSM
-//#define USE_GSM_GATEWAY
-
-//#define WIFI_TO_MQTT_BROKER
-//#define USE_CERT_PROGRAM
-#define USE_PROD_PROGRAM
 
 //-------- Others Configurations depending on the formers ------------
+//-------- Hysteresis Conf ------------------------
 #ifdef WITH_HYST
 #define HYST_MAX	400
 #define HYST_2		340
 #define HYST_4		240
 #define HYST_6		140
 #define HYST_MIN	40
+#endif
+
+//-------- PWM Conf ------------------------
+#ifdef WITH_1_TO_10_VOLTS
+#define PWM_MAX	255
+#define PWM_80		204
+#define PWM_60		153
+#define PWM_40		102
+#define PWM_20		52
+#define PWM_MIN	26
 #endif
 
 //-------- End Of Defines For Configuration ------
@@ -145,6 +150,7 @@ void UpdateRelay (void);
 unsigned char RelayIsOn (void);
 unsigned char RelayIsOff (void);
 unsigned short GetHysteresis (unsigned char);
+unsigned char GetNew1to10 (unsigned short);
 
 
 

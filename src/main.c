@@ -104,6 +104,9 @@ int main(void)
 #ifdef WITH_HYST
 	unsigned short hyst;
 #endif
+#ifdef WITH_1_TO_10_VOLTS
+	unsigned char one_to_ten;
+#endif
 
 	//!< At this stage the microcontroller clock setting is already configured,
     //   this is done through SystemInit() function which is called from startup
@@ -314,10 +317,25 @@ int main(void)
 	USART1Config();
 	AdcConfig();		//recordar habilitar sensor en adc.h
 
+#ifdef WITH_1_TO_10_VOLTS
+	TIM_3_Init ();
+#endif
+
 	TIM_16_Init();
 	TIM16Enable();
 
 	Usart1Send((char *) (const char *) "\r\nKirno Placa Redonda - Basic V1.0\r\n");
+	Usart1Send((char *) (const char *) "  Features:\r\n");
+#ifdef WITH_1_TO_10_VOLTS
+	Usart1Send((char *) (const char *) "  Dimmer 1 to 10V\r\n");
+#endif
+#ifdef WITH_HYST
+	Usart1Send((char *) (const char *) "  Night Hysteresis\r\n");
+#endif
+#ifdef WITH_TEMP_CONTROL
+	Usart1Send((char *) (const char *) "  Temp Control\r\n");
+#endif
+
 	timer_standby = 2000;
 
 	while (1)
@@ -329,6 +347,9 @@ int main(void)
 				LED_OFF;
 				FillPhotoBuffer();
 				FillTempBuffer();
+#ifdef WITH_1_TO_10_VOLTS
+				Update_TIM3_CH1 (0);
+#endif
 				main_state = LAMP_OFF;
 				break;
 
@@ -339,6 +360,10 @@ int main(void)
 					{
 						main_state = LAMP_ON;
 						tt_relay_on_off = 10000;
+#ifdef WITH_1_TO_10_VOLTS
+						Update_TIM3_CH1 (PWM_MIN);
+#endif
+
 						RelayOn();
 						LED_ON;
 #ifdef WITH_HYST
@@ -359,11 +384,22 @@ int main(void)
 #endif
 					{
 						main_state = LAMP_OFF;
+#ifdef WITH_1_TO_10_VOLTS
+						Update_TIM3_CH1 (0);
+#endif
 						tt_relay_on_off = 10000;
 						RelayOff();
 						LED_OFF;
 					}
 				}
+
+#ifdef WITH_1_TO_10_VOLTS
+				if (main_state == LAMP_ON)
+				{
+					one_to_ten = GetNew1to10 (GetPhoto());
+					Update_TIM3_CH1 (one_to_ten);
+				}
+#endif
 				break;
 
 			default:
