@@ -336,6 +336,17 @@ int main(void)
 	Usart1Send((char *) (const char *) "  Temp Control\r\n");
 #endif
 
+	for (i = 0; i < 8; i++)
+	{
+		if (LED)
+			LED_OFF;
+		else
+			LED_ON;
+
+		Wait_ms (250);
+	}
+
+
 	timer_standby = 2000;
 
 	while (1)
