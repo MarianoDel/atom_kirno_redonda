@@ -1,5 +1,5 @@
-# Half Bridge converter based on Inverter Etapa C
-micro STM32F030K6T6
+# Kirno Placa Redonda - Control de Luces y Alarmas
+micro STM32F051C8T6
 
 Antes de empezar revisar seleccion del micro y configuracion
 ------------------------------------------------------------
