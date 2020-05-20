@@ -18,12 +18,12 @@ arm-none-eabi-size Template_F030_rom.elf
    text    data     bss     dec     hex filename
    8020     100    1180    9300    2454 Template_F030_rom.elf
    
-** TODO Utilizar nuevo Makefile
+** DONE Utilizar nuevo Makefile
+   CLOSED: [2020-05-20 Wed 16:18]
    - usar global
    - cargar todos los archivos para flash de micro
    - utilizar configuracion del README de blue pill
    - revisar diferencias .gitignore
-   - cambie cmsis_core OK
 
 ** TODO Quitar LibST de donde se pueda
    - usar emacs_arduino y emacs_stretcher_F103
